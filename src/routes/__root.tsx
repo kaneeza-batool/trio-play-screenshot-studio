@@ -81,16 +81,16 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "Guess the Graduate | AuratTech Graduation" },
+      { name: "description", content: "Celebrate the AuratTech Data & AI Fellowship graduating class with a live guessing game." },
+      { property: "og:title", content: "Guess the Graduate | AuratTech Graduation" },
+      { property: "og:description", content: "A live celebration of the AuratTech Data & AI Fellowship graduating class." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
+      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Lato:wght@400;700;900&family=Poppins:wght@400;500;600;700;800&display=swap" },
       {
         rel: "stylesheet",
         href: appCss,

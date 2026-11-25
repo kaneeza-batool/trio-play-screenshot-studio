@@ -28,3 +28,8 @@ use the editor.
   own key and store it in Secrets.
 - **Secrets.** Lovable manages them. Do not put secret values in the repo.
 <!-- LOVABLE:END -->
+
+## Game architecture
+- Keep game API types, request encoding and round rules in a browser-safe shared module; this lets all three views use the same external GET contract.
+- Poll the external Apps Script directly from the browser without custom headers or server functions; the game requires no managed backend.
+- Share game presentation across index and screen, with separate attendee and private host routes; host controls must never appear on public views.

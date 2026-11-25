@@ -1,0 +1,25 @@
+import { useEffect, useState } from 'react';
+import { CheckCircle2, LockKeyhole, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { gameRequest, MAX_MESSAGE_LENGTH, PLAY_POLL_MS } from '@/lib/game';
+import { BrandBar, Footer, GraduationArt } from './brand';
+import { Leaderboard } from './screen';
+import { useGame } from './use-game';
+
+export function PlayerPage() {
+  const {state,refresh}=useGame(PLAY_POLL_MS);
+  const [player,setPlayer]=useState(''); const [draft,setDraft]=useState(''); const [loaded,setLoaded]=useState(false);
+  const [guess,setGuess]=useState(''); const [message,setMessage]=useState('');
+  const [lockedRound,setLockedRound]=useState<number | null>(null); const [busy,setBusy]=useState(false); const [error,setError]=useState('');
+  useEffect(()=>{setPlayer(localStorage.getItem('graduate-player')||'');setLoaded(true);},[]);
+  useEffect(()=>{setGuess('');setMessage('');setError('');},[state.round]);
+  useEffect(()=>{if(!player || state.round<1)return;const key=`graduate-locked:${player}:${state.round}`;setLockedRound(sessionStorage.getItem(key)?state.round:null);},[player,state.round]);
+  const lock=()=>{setLockedRound(state.round);sessionStorage.setItem(`graduate-locked:${player}:${state.round}`,'1');};
+  async function submit(event: React.FormEvent) {
+    event.preventDefault();if(busy||!guess)return;setBusy(true);setError('');
+    try { const result=await gameRequest({action:'guess',round:state.round,player,guess,message:message.slice(0,MAX_MESSAGE_LENGTH)});if(!result||typeof result!=='object'||!('ok' in result)||result.ok!==true)throw new Error('Your guess could not be saved. Please try again.');lock();void refresh(); }
+    catch(e){const text=e instanceof Error?e.message:'Please try again.';if(/already.*guess/i.test(text))lock();else setError(text);}finally{setBusy(false);}
+  }
+  const active=state.phase==='clue'||state.phase==='hint';
+  return <div className="game-shell"><BrandBar/><main className="mobile-content"><div className="eyebrow">THE GRADUATION GAME</div><h1>Guess the Graduate<span className="text-primary">.</span></h1>{!loaded ? <p>Getting ready…</p> : !player ? <section className="panel"><Sparkles className="text-primary" size={32}/><h2 className="text-secondary-foreground text-xl mt-4">Hey, glad you’re here!</h2><form onSubmit={e=>{e.preventDefault();if(draft.trim()){localStorage.setItem('graduate-player',draft.trim());setPlayer(draft.trim());}}}><div className="form-field"><label htmlFor="player-name">Your name</label><input className="field" id="player-name" required maxLength={60} autoComplete="given-name" value={draft} onChange={e=>setDraft(e.target.value)} placeholder="What should we call you?"/></div><Button variant="game" className="w-full" type="submit">Join the celebration <Sparkles/></Button></form></section> : <><div className="player-line"><span>Playing as <strong>{player}</strong></span><Button variant="link" className="text-xs px-0 h-auto" onClick={()=>{localStorage.removeItem('graduate-player');setDraft(player);setPlayer('');}}>Not you? Change name</Button></div>{state.phase==='waiting' && <div className="welcome-banner"><GraduationArt/><h2>Get ready!</h2><p>Guess the Graduate starts soon</p></div>}{active && (lockedRound===state.round ? <div className="panel status-panel" aria-live="polite"><CheckCircle2 size={48}/><h2>Guess locked!</h2><p>Eyes on the screen 👀</p></div> : <><section className="panel clue-panel"><div className="eyebrow">ROUND {state.round} OF {state.totalRounds}</div><h2>{state.clue}</h2></section>{state.phase==='hint' && state.hint && <div className="hint"><div className="eyebrow">A LITTLE HINT</div><p>{state.hint}</p></div>}<form onSubmit={submit}><div className="form-field"><label htmlFor="graduate-guess">Who is it?</label><select className="field" id="graduate-guess" required value={guess} onChange={e=>setGuess(e.target.value)}><option value="" disabled>Choose a graduate</option>{state.names.map(n=><option key={n} value={n}>{n}</option>)}</select></div><div className="form-field"><label htmlFor="cheer-message"><span>Cheer message <span className="text-muted-foreground font-normal">(optional)</span></span><span className="text-muted-foreground font-normal">{message.length}/{MAX_MESSAGE_LENGTH}</span></label><input className="field" id="cheer-message" maxLength={MAX_MESSAGE_LENGTH} value={message} onChange={e=>setMessage(e.target.value)} placeholder="A little love for our graduates 💜"/></div>{error && <p className="error-note" role="alert">{error}</p>}<Button type="submit" variant="game" className="w-full" disabled={busy||!guess}><LockKeyhole/>{busy?'Locking…':'Lock my guess'}</Button></form></>)}{state.phase==='reveal' && <div className="panel status-panel"><Sparkles size={48}/><h2>Answer revealed!</h2><p>Look at the screen 🎉</p></div>}{state.phase==='end' && <><div className="status-panel"><h2>Thanks for playing! 💜</h2><p>Here’s to our brilliant graduates.</p></div><Leaderboard state={state} compact/></>}</>}</main><Footer/></div>;
+}
