@@ -318,6 +318,17 @@ button { cursor: pointer; }
 .name-card.selected { background: linear-gradient(#F3F1FF, #F3F1FF) padding-box, var(--gradient) border-box; border-color: transparent; box-shadow: var(--shadow-glow); transform: translateY(-2px); }
 .name-card > span:not(.avatar) { overflow-wrap: anywhere; min-width: 0; padding-right: 14px; }
 .name-check { position: absolute; top: 6px; right: 6px; background: var(--magenta); color: white; border-radius: 50%; padding: 2px; animation: pop .35s cubic-bezier(.2,1.6,.4,1) both; }
+/* overflow: clip hides the glow overflow without making the page a scroll box that focus/taps can shift sideways. */
+.player-shell { overflow: clip; }
+/* Round options: the backend's 4 shuffled choices as large tap targets. */
+.option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.option-card { position: relative; display: flex; align-items: center; justify-content: center; text-align: center; min-height: 84px; padding: 16px 14px; border-radius: 16px; border: 0; background: #FFFFFF; color: var(--navy); font: inherit; font-family: var(--font-display); font-weight: 700; font-size: 17px; line-height: 1.25; box-shadow: 0 6px 18px rgba(37, 33, 59, .1), 0 1px 3px rgba(37, 33, 59, .08); transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease; animation: enter .4s ease-out both; }
+.option-card > span { overflow-wrap: anywhere; min-width: 0; }
+.option-card:hover { box-shadow: 0 10px 24px rgba(37, 33, 59, .14), 0 1px 3px rgba(37, 33, 59, .08); }
+.option-card:active { transform: scale(.98); }
+.option-card:focus-visible { outline: 3px solid #1F10F0; outline-offset: 3px; }
+.option-card.selected { background: linear-gradient(135deg, #00D26A 0%, #1F10F0 100%); color: #FFFFFF; transform: scale(1.04); box-shadow: 0 12px 28px rgba(31, 16, 240, .3); text-shadow: 0 1px 2px rgba(0, 0, 0, .2); }
+.option-check { position: absolute; top: 8px; right: 8px; color: #FFFFFF; animation: pop .35s cubic-bezier(.2,1.6,.4,1) both; }
 .quick-cheers { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
 .quick-cheers button { border: 1px solid var(--border); background: white; color: var(--navy); border-radius: 30px; padding: 8px 13px; font: inherit; font-size: 13px; font-weight: 600; transition: transform .15s, background .15s; }
 .quick-cheers button:active { transform: scale(.95); }
@@ -389,5 +400,5 @@ button { cursor: pointer; }
 @media (max-width: 1100px) { .reveal-panel { grid-template-columns: 1fr; } .how-to { grid-template-columns: 1fr; } }
 @media (max-width: 900px) { .screen-grid { grid-template-columns: minmax(0,1fr) 230px; gap: 18px; }.hero { padding: 26px; }.hero h2 { font-size: 30px; }.grad-art { width: 150px; }.play-address { font-size: 20px; }.qr-frame svg { width: 110px; height: 110px; }.clue-text { font-size: 28px; }.hero .grad-art { width: 110px; }.hero h2 { font-size: 28px; }.winner h2 { font-size: 28px; }.reveal-main h2 { font-size: 36px; }.podium-place { width: 120px; } }
 @media (max-width: 650px) { .brandbar { height: 84px; padding-inline: 20px; }.brand img { height: 66px; }.wordmark strong { font-size: 14px; }.wordmark-top,.wordmark-sub { font-size: 9px; }.screen-content { padding: 22px 20px; }.screen-heading { flex-wrap: wrap; }.screen-heading h1 { font-size: 24px; }.screen-grid { grid-template-columns: 1fr; }.hero { padding: 26px; min-height: 230px; flex-direction: column; text-align: center; }.hero h2 { font-size: 30px; }.grad-art { width: 120px; }.join-section { flex-direction: column; text-align: center; }.sidebar { min-height: 260px; }.live-badge { font-size: 9px; padding: 7px; }.eyebrow { font-size: 10px; }.clue-text { font-size: 28px; }.host-stats { grid-template-columns: repeat(2,1fr); }.footer { font-size: 10px; flex-wrap: wrap; }.winner h2 { font-size: 28px; }.podium { gap: 8px; }.podium-place { width: 96px; }.place-1 .podium-block { height: 120px; }.place-2 .podium-block { height: 90px; }.place-3 .podium-block { height: 70px; }.reveal-panel { padding: 22px; }.demo-bar { font-size: 11px; }.demo-bar a { padding: 6px 8px; } }
-@media (max-width: 380px) { .name-grid { grid-template-columns: 1fr; } }
+@media (max-width: 380px) { .name-grid,.option-grid { grid-template-columns: 1fr; } }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation: none !important; transition: none !important; } }

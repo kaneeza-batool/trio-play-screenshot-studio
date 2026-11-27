@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Check, CheckCircle2, Flame, Hourglass, Lightbulb, LockKeyhole, PartyPopper, Sparkles, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { currentStreak, findPlayer, gameRequest, MAX_MESSAGE_LENGTH, PLAY_POLL_MS, playerStorageKeys } from '@/lib/game';
+import { currentStreak, findPlayer, gameRequest, guessChoices, MAX_MESSAGE_LENGTH, PLAY_POLL_MS, playerStorageKeys } from '@/lib/game';
 import { Avatar, BrandBar, Confetti, DemoBar, Footer, GraduationArt, RoundPips } from './brand';
 import { ClueText, Countdown, Leaderboard } from './screen';
 import { useGame } from './use-game';
@@ -21,6 +21,11 @@ export function PlayerPage() {
   const [results, setResults] = useState<Record<string, boolean>>({});
   useEffect(() => { setPlayer(localStorage.getItem('graduate-player') || ''); setLoaded(true); }, []);
   useEffect(() => { setGuess(''); setMessage(''); setError(''); }, [state.round]);
+  // TEMP: verify the backend's options on every poll (state is replaced on each successful poll).
+  useEffect(() => { console.log(`[play] poll round ${state.round} (${state.phase}) options:`, state.options ?? '(none)', `| names: ${state.names.length}`); }, [state]);
+  const choices = guessChoices(state);
+  // Never submit a name that is no longer on offer (e.g. options arrived after a dropdown pick).
+  useEffect(() => { if (guess && !choices.names.includes(guess)) setGuess(''); }, [choices.names, guess]);
   // A reset (or a rehearsal before the real game) must not leave rounds marked as already guessed.
   useEffect(() => {
     if (!player || state.phase !== 'waiting') return;
@@ -64,7 +69,7 @@ export function PlayerPage() {
   const streak = currentStreak(results, state.phase === 'reveal' || state.phase === 'end' ? state.round : state.round - 1);
   const correct = state.reveal && pick ? pick === state.reveal.graduate : null;
 
-  return <div className="game-shell">
+  return <div className="game-shell player-shell">
     {demo && <DemoBar/>}
     <BrandBar/>
     <main className="mobile-content">
@@ -111,21 +116,27 @@ export function PlayerPage() {
           {state.phase === 'hint' && state.hint && <div className="hint"><Lightbulb size={20}/><div><span className="eyebrow">A LITTLE HINT</span><p>{state.hint}</p></div></div>}
           {seconds === 0 && <p className="times-up" role="status">⏰ Time’s up! Lock in your guess before the reveal.</p>}
           <form onSubmit={submit} className="guess-form">
-            <div className="form-field">
+            {choices.mode === 'cards' ? <div className="form-field">
               <span className="field-label" id="guess-label">Who is it?</span>
-              <div className="name-grid" role="radiogroup" aria-labelledby="guess-label">
-                {state.names.map(n => <button type="button" role="radio" aria-checked={guess === n} key={n} className={`name-card${guess === n ? ' selected' : ''}`} onClick={() => setGuess(n)}>
-                  <Avatar name={n} size={34}/><span>{n}</span>{guess === n && <Check className="name-check" size={16}/>}
+              <div className="option-grid" role="radiogroup" aria-labelledby="guess-label">
+                {choices.names.map(n => <button type="button" role="radio" aria-checked={guess === n} key={n} className={`option-card${guess === n ? ' selected' : ''}`} onClick={() => setGuess(n)}>
+                  <span>{n}</span>{guess === n && <Check className="option-check" size={18} aria-hidden="true"/>}
                 </button>)}
               </div>
-            </div>
+            </div> : <div className="form-field">
+              <label htmlFor="graduate-guess">Who is it?</label>
+              <select className="field" id="graduate-guess" required value={guess} onChange={e => setGuess(e.target.value)}>
+                <option value="" disabled>Choose a graduate</option>
+                {choices.names.map(n => <option key={n} value={n}>{n}</option>)}
+              </select>
+            </div>}
             <div className="form-field">
               <label htmlFor="cheer-message"><span>Send a cheer <span className="text-muted-foreground font-normal">(optional)</span></span><span className="text-muted-foreground font-normal">{message.length}/{MAX_MESSAGE_LENGTH}</span></label>
               <div className="quick-cheers">{QUICK_CHEERS.map(c => <button type="button" key={c} className={message === c ? 'on' : ''} onClick={() => setMessage(m => m === c ? '' : c)}>{c}</button>)}</div>
               <input className="field" id="cheer-message" maxLength={MAX_MESSAGE_LENGTH} value={message} onChange={e => setMessage(e.target.value)} placeholder="Or write your own 💜"/>
             </div>
             {error && <p className="error-note" role="alert">{error}</p>}
-            <div className="lock-bar"><Button type="submit" variant="game" className="w-full" disabled={busy || !guess}><LockKeyhole/>{busy ? 'Locking…' : guess ? `Lock in ${guess.split(' ')[0]}` : 'Pick a graduate'}</Button></div>
+            <div className="lock-bar"><Button type="submit" variant="game" className="w-full" disabled={busy || !guess}><LockKeyhole/>{busy ? 'Locking…' : 'Lock my guess'}</Button></div>
           </form>
         </>)}
 

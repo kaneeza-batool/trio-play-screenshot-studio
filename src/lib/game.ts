@@ -3,6 +3,8 @@ export type Guess = { id: string | number; player: string; guess: string; messag
 export type GameState = {
   round: number; phase: Phase; totalRounds: number; names: string[]; count: number;
   clue?: string; hint?: string; guesses?: Guess[];
+  /** This round's 4 choices (1 correct + 3 wrong, already shuffled); sent during clue, hint and reveal. */
+  options?: string[];
   reveal?: { graduate: string; cluster: string; avatar: string; correct: number; percent: number; firstCorrect: string };
   leaderboard: { player: string; points: number }[];
 };
@@ -127,10 +129,11 @@ export function demoState(phase: Phase): GameState {
   ];
   const base: GameState = { round: 3, phase, totalRounds: 5, names, count: guesses.length, leaderboard, guesses,
     clue: 'She turned a spreadsheet of 10,000 rows into a dashboard the whole team now opens every morning.',
-    hint: 'Her capstone was about predicting crop yields.' };
-  if (phase === 'waiting') { const { clue: _clue, hint: _hint, ...rest } = base; return { ...rest, round: 0, count: 0, guesses: [], leaderboard: [] }; }
+    hint: 'Her capstone was about predicting crop yields.',
+    options: ['Zara Ahmed', 'Sana Ali', 'Hira Siddiqui', 'Ayesha Khan'] };
+  if (phase === 'waiting') { const { clue: _clue, hint: _hint, options: _options, ...rest } = base; return { ...rest, round: 0, count: 0, guesses: [], leaderboard: [] }; }
   if (phase === 'reveal') return { ...base, reveal: { graduate: 'Sana Ali', cluster: 'Data Analytics Cluster', avatar: '', correct: 4, percent: 57, firstCorrect: 'Noor' } };
-  if (phase === 'end') return { ...base, round: 5 };
+  if (phase === 'end') { const { options: _options, ...rest } = base; return { ...rest, round: 5 }; }
   return base;
 }
 
@@ -165,4 +168,14 @@ export function hostCommandAllowed(state: Pick<GameState, 'phase' | 'round'>, cm
 /** Player keys kept on this device for one game; cleared when the host resets. */
 export function playerStorageKeys(keys: string[], player: string) {
   return keys.filter(k => k === `graduate-results:${player}` || k.startsWith(`graduate-locked:${player}:`) || k.startsWith(`graduate-pick:${player}:`));
+}
+
+/**
+ * What a player picks from this round: the backend's shuffled options as cards, or, if an older
+ * backend sends none, every name in a dropdown. Names are passed through unchanged so the
+ * submitted guess matches the sheet's spelling exactly.
+ */
+export function guessChoices(state: Pick<GameState, 'options' | 'names'>): { mode: 'cards' | 'dropdown'; names: string[] } {
+  const options = Array.isArray(state.options) ? state.options.filter(n => typeof n === 'string' && n !== '') : [];
+  return options.length ? { mode: 'cards', names: options } : { mode: 'dropdown', names: state.names };
 }
