@@ -81,6 +81,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
+      { name: "theme-color", content: "#251BF7" },
       { title: "Guess the Graduate | AuratTech Graduation" },
       { name: "description", content: "Celebrate the AuratTech Data & AI Fellowship graduating class with a live guessing game." },
       { property: "og:title", content: "Guess the Graduate | AuratTech Graduation" },
@@ -95,7 +96,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/brand/favicon-32.png", type: "image/png" },
+      { rel: "apple-touch-icon", href: "/brand/apple-touch-icon.png" },
     ],
   }),
   shellComponent: RootShell,
@@ -110,7 +112,7 @@ function RootShell({ children }: { children: ReactNode }) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         {children}
         <Scripts />
       </body>

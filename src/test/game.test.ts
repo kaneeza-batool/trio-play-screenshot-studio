@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildGameUrl, gameSettings, MAX_MESSAGE_LENGTH, PLAY_POLL_MS, readyToReveal, SCREEN_POLL_MS } from '@/lib/game';
+import { buildGameUrl, DEFAULT_GAME_API_URL, gameSettings, getApiUrl, MAX_MESSAGE_LENGTH, PLAY_POLL_MS, readyToReveal, SCREEN_POLL_MS } from '@/lib/game';
 describe('Game rules', () => {
   it('limits cheer messages to 80 characters', () => { expect(MAX_MESSAGE_LENGTH).toBe(80); });
   it('defaults to a 40 second timer', () => { expect(gameSettings('').timer).toBe(40); });
@@ -8,6 +8,16 @@ describe('Game rules', () => {
   it('allows the target to be set by the screen URL', () => { expect(gameSettings('?target=25').target).toBe(25); });
   it('is ready when the timer ends but not before', () => { expect(readyToReveal(0,0,15)).toBe(true); expect(readyToReveal(1,0,15)).toBe(false); });
   it('is ready when the target is reached but not before', () => { expect(readyToReveal(20,15,15)).toBe(true); expect(readyToReveal(20,14,15)).toBe(false); });
+  it('connects to the live Apps Script backend by default', () => {
+    localStorage.removeItem('graduate-api-url');
+    expect(getApiUrl()).toBe(DEFAULT_GAME_API_URL);
+    expect(new URL(DEFAULT_GAME_API_URL).protocol).toBe('https:');
+  });
+  it('lets a host override the backend for their own browser', () => {
+    localStorage.setItem('graduate-api-url','https://script.google.com/macros/s/other/exec');
+    expect(getApiUrl()).toBe('https://script.google.com/macros/s/other/exec');
+    localStorage.removeItem('graduate-api-url');
+  });
   it('polls attendee state every 4 seconds', () => { expect(PLAY_POLL_MS).toBe(4000); });
   it('polls screen and host state every 2 seconds', () => { expect(SCREEN_POLL_MS).toBe(2000); });
   it('encodes guess names and cheer messages without altering them', () => {
